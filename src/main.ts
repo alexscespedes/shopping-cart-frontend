@@ -2,7 +2,10 @@ import "./style.css";
 import { products } from "./data";
 import { renderProducts } from "./render/products";
 import { renderCart } from "./render/cart";
-import { dispatch } from "./state";
+import { applyMiddleware, loggerMiddleware, getDispatch } from "./state";
+
+applyMiddleware(loggerMiddleware);
+const dispatch = getDispatch();
 
 const productList = document.getElementById("productList")!;
 const cartItems = document.getElementById("cartItems")!;

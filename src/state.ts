@@ -10,9 +10,21 @@ export type Action =
   | { type: "DECREASE"; productId: number }
   | { type: "CLEAR_CART" };
 
+export type Dispatch = (action: Action) => void;
+
+export type Middleware = (
+  state: AppState,
+  action: Action,
+  next: Dispatch,
+) => void;
+
 export let state: AppState = {
   cart: [],
 };
+
+function baseDispatch(action: Action): void {
+  state = reducer(state, action);
+}
 
 export function reducer(currentState: AppState, action: Action): AppState {
   switch (action.type) {
@@ -74,6 +86,25 @@ export function reducer(currentState: AppState, action: Action): AppState {
   }
 }
 
-export function dispatch(action: Action): void {
-  state = reducer(state, action);
+let dispatch: Dispatch = baseDispatch;
+
+export function applyMiddleware(...middlewares: Middleware[]) {
+  dispatch = middlewares.reduceRight((next, middleware) => {
+    return (action: Action) => middleware(state, action, next);
+  }, baseDispatch);
 }
+
+export function getDispatch(): Dispatch {
+  return dispatch;
+}
+
+export const loggerMiddleware: Middleware = (currentState, action, next) => {
+  console.group(`Action: ${action.type}`);
+  console.log("Previous State:", currentState);
+  console.log("Action Payload:", action);
+
+  next(action);
+
+  console.log("Next State:", state);
+  console.groupEnd();
+};

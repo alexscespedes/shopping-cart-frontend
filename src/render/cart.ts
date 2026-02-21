@@ -1,5 +1,13 @@
-import { state, dispatch } from "../state";
+import {
+  state,
+  applyMiddleware,
+  loggerMiddleware,
+  getDispatch,
+} from "../state";
 import { products } from "../data";
+
+applyMiddleware(loggerMiddleware);
+const dispatch = getDispatch();
 
 export function renderCart(
   container: HTMLElement,

@@ -1,5 +1,8 @@
 import type { Product } from "../types";
-import { dispatch } from "../state";
+import { applyMiddleware, loggerMiddleware, getDispatch } from "../state";
+
+applyMiddleware(loggerMiddleware);
+const dispatch = getDispatch();
 
 export function renderProducts(
   container: HTMLElement,
