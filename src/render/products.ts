@@ -1,5 +1,5 @@
 import type { Product } from "../types";
-import { addToCart } from "../state";
+import { dispatch } from "../state";
 
 export function renderProducts(
   container: HTMLElement,
@@ -20,7 +20,7 @@ export function renderProducts(
 
     const button = card.querySelector("button")!;
     button.addEventListener("click", () => {
-      addToCart(product.id);
+      dispatch({ type: "ADD_TO_CART", productId: product.id });
       refresh();
     });
 

@@ -1,4 +1,4 @@
-import { cart, increase, decrease } from "../state";
+import { state, dispatch } from "../state";
 import { products } from "../data";
 
 export function renderCart(
@@ -10,7 +10,7 @@ export function renderCart(
 
   let total = 0;
 
-  cart.forEach((item) => {
+  state.cart.forEach((item) => {
     const product = products.find((p) => p.id === item.productId)!;
     total += product.price * item.quantity;
 
@@ -28,12 +28,12 @@ export function renderCart(
     const [minus, plus] = div.querySelectorAll("button");
 
     minus.addEventListener("click", () => {
-      decrease(product.id);
+      dispatch({ type: "DECREASE", productId: product.id });
       refresh();
     });
 
     plus.addEventListener("click", () => {
-      increase(product.id);
+      dispatch({ type: "INCREASE", productId: product.id });
       refresh();
     });
 
