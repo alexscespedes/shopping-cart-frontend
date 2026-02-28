@@ -49,4 +49,18 @@ export function renderCart(
   });
 
   totalElement.textContent = `Total: $${total}`;
+
+  const status = state.checkoutStatus;
+
+  if (status === "loading") {
+    totalElement.textContent += " | Processing...";
+  }
+
+  if (status === "success") {
+    totalElement.textContent += " | Success!";
+  }
+
+  if (status === "error") {
+    totalElement.textContent += " | Failed. Try again.";
+  }
 }

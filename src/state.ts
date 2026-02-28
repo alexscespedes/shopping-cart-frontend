@@ -1,14 +1,20 @@
 import type { CartItem } from "./types";
+import { fakeCheckoutApi } from "./api";
 
 export interface AppState {
   cart: CartItem[];
+  checkoutStatus: "idle" | "loading" | "success" | "error";
 }
 
 export type Action =
   | { type: "ADD_TO_CART"; productId: number }
   | { type: "INCREASE"; productId: number }
   | { type: "DECREASE"; productId: number }
-  | { type: "CLEAR_CART" };
+  | { type: "CLEAR_CART" }
+  | { type: "CHECKOUT_REQUEST" }
+  | { type: "CHECKOUT_SUCCESS" }
+  | { type: "CHECKOUT_FAILURE" }
+  | { type: "CHECKOUT" }; //async trigger
 
 export type Dispatch = (action: Action) => void;
 
@@ -20,10 +26,13 @@ export type Middleware = (
 
 export let state: AppState = {
   cart: [],
+  checkoutStatus: "idle",
 };
 
 function baseDispatch(action: Action): void {
   state = reducer(state, action);
+
+  listeners.forEach((listener) => listener());
 }
 
 export function reducer(currentState: AppState, action: Action): AppState {
@@ -81,6 +90,24 @@ export function reducer(currentState: AppState, action: Action): AppState {
         cart: [],
       };
 
+    case "CHECKOUT_REQUEST":
+      return {
+        ...currentState,
+        checkoutStatus: "loading",
+      };
+
+    case "CHECKOUT_SUCCESS":
+      return {
+        cart: [],
+        checkoutStatus: "success",
+      };
+
+    case "CHECKOUT_FAILURE":
+      return {
+        ...currentState,
+        checkoutStatus: "error",
+      };
+
     default:
       return currentState;
   }
@@ -108,3 +135,37 @@ export const loggerMiddleware: Middleware = (currentState, action, next) => {
   console.log("Next State:", state);
   console.groupEnd();
 };
+
+export const asyncMiddleware: Middleware = (currentState, action, next) => {
+  if (action.type == "CHECKOUT") {
+    if (currentState.cart.length === 0) {
+      return;
+    }
+
+    next({ type: "CHECKOUT_REQUEST" });
+
+    fakeCheckoutApi()
+      .then(() => {
+        next({ type: "CHECKOUT_SUCCESS" });
+      })
+      .catch(() => {
+        next({ type: "CHECKOUT_FAILURE" });
+      });
+    return;
+  }
+
+  next(action);
+};
+
+type Listener = () => void;
+
+const listeners: Listener[] = [];
+
+export function subscribe(listener: Listener): () => void {
+  listeners.push(listener);
+
+  return () => {
+    const index = listeners.indexOf(listener);
+    if (index > -1) listeners.splice(index, 1);
+  };
+}
